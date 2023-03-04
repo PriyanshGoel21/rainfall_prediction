@@ -1,11 +1,12 @@
 import streamlit as st
-# import pandas as pd
-# import numpy as np
-# from sklearn.model_selection import train_test_split
-# from sklearn.linear_model import LinearRegression
-# from sklearn import metrics
-# from sklearn.ensemble import RandomForestRegressor
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+from sklearn import metrics
+from sklearn.ensemble import RandomForestRegressor
 import pickle
+import matplotlib.pyplot as plt
 st.set_page_config(
     page_title="Rainfall Prediction using RandomForest",
     layout="wide",
@@ -27,66 +28,117 @@ subdiv = st.selectbox("Subdivision", ['ANDAMAN & NICOBAR ISLANDS', 'ARUNACHAL PR
                                       'SOUTH INTERIOR KARNATAKA', 'KERALA', 'LAKSHADWEEP']
                       )
 
-year = st.selectbox('Year', range(1990, 2030))
-month = st.selectbox('Month', month_map.keys())
-month = month_map[month]
+year = st.selectbox('Year', range(1990, 2051))
+duration = st.radio(
+    "Select Duration",
+    ('Monthly', 'Annual'))
+
+if duration == "Monthly":
+    month = st.selectbox('Month', month_map.keys())
+    m = month
+    month = month_map[month]
+else:
+    month = 1
 data_load_state = st.markdown('### Running...')
+acc_load_state = st.text('Accuracy: Calculating...')
 
-# df = pd.read_csv("rainfall in india 1901-2015.csv")
-#
-# df = df.fillna(df.mean())
-# df["SUBDIVISION"].nunique()
-# print(df["SUBDIVISION"].unique())
-# group = df.groupby('SUBDIVISION')[
-#     'YEAR', 'JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']
-#
-# data = group.get_group((subdiv))
-# # data.head()
-#
-# df1 = data.melt(['YEAR']).reset_index()
-# df1 = df1[['YEAR', 'variable', 'value']].reset_index().sort_values(by=['YEAR', 'index'])
-# df1.columns = ['Index', 'Year', 'Month', 'Avg_Rainfall']
-# df1.drop(columns="Index", inplace=True)
-# # df1.head()
-#
-# df1['Month'] = df1['Month'].map(month_map)
-# df1.groupby("Year").sum()
-# # df1.head(12)
-#
-# x = np.asanyarray(df1[['Year', 'Month']]).astype('int')
-# y = np.asanyarray(df1['Avg_Rainfall']).astype('int')
-# x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2, random_state=10)
-#
-# lin_reg = LinearRegression()
-# lin_reg.fit(x_train, y_train)
-#
-# y_train_predict = lin_reg.predict(x_train)
-# y_test_predict = lin_reg.predict(x_test)
-#
-# random_forest_model = RandomForestRegressor(max_depth=100, max_features='sqrt', min_samples_leaf=4,
-#                                             min_samples_split=10, n_estimators=800)
-# random_forest_model.fit(x_train, y_train)
-# RandomForestRegressor(max_depth=100, max_features='sqrt', min_samples_leaf=4, min_samples_split=10, n_estimators=800)
-# y_train_predict = random_forest_model.predict(x_train)
-# y_test_predict = random_forest_model.predict(x_test)
-# print("-------Test Data--------")
-# print('MAE:', metrics.mean_absolute_error(y_test, y_test_predict))
-# print('MSE:', metrics.mean_squared_error(y_test, y_test_predict))
-# print('RMSE:', np.sqrt(metrics.mean_squared_error(y_test, y_test_predict)))
-#
-# print("\n-------Train Data--------")
-# print('MAE:', metrics.mean_absolute_error(y_train, y_train_predict))
-# print('MSE:', metrics.mean_squared_error(y_train, y_train_predict))
-# print('RMSE:', np.sqrt(metrics.mean_squared_error(y_train, y_train_predict)))
-#
-# print("-----------Training Accuracy------------")
-# print(round(random_forest_model.score(x_train, y_train), 3) * 100)
-# print("-----------Testing Accuracy------------")
-# print(round(random_forest_model.score(x_test, y_test), 3) * 100)
+df = pd.read_csv("rainfall in india 1901-2015.csv")
 
-random_forest_model = pickle.load(open("random_forest_model.pickle", "rb"))
-data_load_state.markdown(f"### {round(random_forest_model.predict([[year, month],])[0], 2)}mm of rainfall is predicted")
-# st.text(f"Accuracy: {round(random_forest_model.score(x_train, y_train), 2) * 100}%")
+df = df.fillna(df.mean())
+df["SUBDIVISION"].nunique()
+print(df["SUBDIVISION"].unique())
+group = df.groupby('SUBDIVISION')[
+    'YEAR', 'JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']
+
+data = group.get_group(subdiv)
+# data.head()
+
+df1 = data.melt(['YEAR']).reset_index()
+df1 = df1[['YEAR', 'variable', 'value']].reset_index().sort_values(by=['YEAR', 'index'])
+df1.columns = ['Index', 'Year', 'Month', 'Avg_Rainfall']
+df1.drop(columns="Index", inplace=True)
+# df1.head()
+
+df1['Month'] = df1['Month'].map(month_map)
+df1.groupby("Year").sum()
+# df1.head(12)
+
+x = np.asanyarray(df1[['Year', 'Month']]).astype('int')
+y = np.asanyarray(df1['Avg_Rainfall']).astype('int')
+x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2, random_state=10)
+
+lin_reg = LinearRegression()
+lin_reg.fit(x_train, y_train)
+
+y_train_predict = lin_reg.predict(x_train)
+y_test_predict = lin_reg.predict(x_test)
+
+random_forest_model = RandomForestRegressor(max_depth=100, max_features='sqrt', min_samples_leaf=4,
+                                            min_samples_split=10, n_estimators=800)
+random_forest_model.fit(x_train, y_train)
+RandomForestRegressor(max_depth=100, max_features='sqrt', min_samples_leaf=4, min_samples_split=10, n_estimators=800)
+y_train_predict = random_forest_model.predict(x_train)
+y_test_predict = random_forest_model.predict(x_test)
+print("-------Test Data--------")
+print('MAE:', metrics.mean_absolute_error(y_test, y_test_predict))
+print('MSE:', metrics.mean_squared_error(y_test, y_test_predict))
+print('RMSE:', np.sqrt(metrics.mean_squared_error(y_test, y_test_predict)))
+
+print("\n-------Train Data--------")
+print('MAE:', metrics.mean_absolute_error(y_train, y_train_predict))
+print('MSE:', metrics.mean_squared_error(y_train, y_train_predict))
+print('RMSE:', np.sqrt(metrics.mean_squared_error(y_train, y_train_predict)))
+
+print("-----------Training Accuracy------------")
+print(round(random_forest_model.score(x_train, y_train), 3) * 100)
+print("-----------Testing Accuracy------------")
+print(round(random_forest_model.score(x_test, y_test), 3) * 100)
+summ = [random_forest_model.predict([[year, month], ])[0]]
+for x in range(1, 13):
+    if x == month:
+        continue
+    summ.append(random_forest_model.predict([[year, x], ])[0])
+if duration == "Annual":
+    data_load_state.markdown(f"### {'Low' if sum(summ) < 900 else 'Moderate' if sum(summ) < 2700 else 'High'} rainfall of {round(sum(summ), 2)}mm is predicted")
+else:
+    data_load_state.markdown(f"### {'Low' if summ[0] < 900/12 else 'Moderate' if summ[0] < 2700/12 else 'High'} rainfall of {round(summ[0], 2)}mm is predicted")
+acc_load_state.text(f"Accuracy: {round(random_forest_model.score(x_train, y_train), 3) * 100}%")
+
+
+col1, col2 = st.columns(2)
+
+with col1:
+    st.markdown("Model Fit")
+    st.line_chart(pd.DataFrame({"Test": y_test, "Prediction": y_test_predict}))
+
+with col2:
+    df2 = df[df["YEAR"] == year]
+    if duration == 'Annual':
+        st.markdown('Annual Rainfall v/s SubDivisions')
+        df2 = df2[["SUBDIVISION", "ANNUAL"]]
+        st.bar_chart(df2, x="SUBDIVISION", y="ANNUAL")
+    else:
+        st.markdown(f'{m} Rainfall v/s SubDivisions')
+        df2 = df2[["SUBDIVISION", m]]
+        st.bar_chart(df2, x="SUBDIVISION", y=m)
+
+#
+# chart1 = alt.Chart(df).mark_line().encode(
+#   x=x_test,
+#   y=y_test,
+#   color=alt.Color("x")
+# ).properties(title="Actual vs Predicted")
+#
+# chart2 = alt.Chart(df).mark_line().encode(
+#   x=x_test,
+#   y=y_test_predict,
+#   color=alt.Color("x")
+# ).properties(title="Actual vs Predicted")
+#
+# chart = chart1 + chart2
+#
+#
+# st.altair_chart(chart, use_container_width=True)
 
 st.title("Detailed Data View")
 st.dataframe(df)
