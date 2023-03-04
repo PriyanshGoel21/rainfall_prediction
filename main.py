@@ -7,6 +7,7 @@ from sklearn import metrics
 from sklearn.ensemble import RandomForestRegressor
 import pickle
 import matplotlib.pyplot as plt
+import altair as alt
 st.set_page_config(
     page_title="Rainfall Prediction using RandomForest",
     layout="wide",
@@ -16,7 +17,7 @@ st.title("Rainfall Prediction using RandomForest")
 month_map = {'JAN': 1, 'FEB': 2, 'MAR': 3, 'APR': 4, 'MAY': 5, 'JUN': 6, 'JUL': 7, 'AUG': 8, 'SEP': 9, 'OCT': 10,
              'NOV': 11, 'DEC': 12}
 
-subdiv = st.selectbox("Subdivision", ['ANDAMAN & NICOBAR ISLANDS', 'ARUNACHAL PRADESH', 'ASSAM & MEGHALAYA',
+subdiv = st.selectbox("Subdivision", sorted(['ANDAMAN & NICOBAR ISLANDS', 'ARUNACHAL PRADESH', 'ASSAM & MEGHALAYA',
                                       'NAGA MANI MIZO TRIPURA', 'SUB HIMALAYAN WEST BENGAL & SIKKIM',
                                       'GANGETIC WEST BENGAL', 'ORISSA', 'JHARKHAND', 'BIHAR', 'EAST UTTAR PRADESH',
                                       'WEST UTTAR PRADESH', 'UTTARAKHAND', 'HARYANA DELHI & CHANDIGARH', 'PUNJAB',
@@ -25,7 +26,7 @@ subdiv = st.selectbox("Subdivision", ['ANDAMAN & NICOBAR ISLANDS', 'ARUNACHAL PR
                                       'SAURASHTRA & KUTCH', 'KONKAN & GOA', 'MADHYA MAHARASHTRA', 'MATATHWADA',
                                       'VIDARBHA', 'CHHATTISGARH', 'COASTAL ANDHRA PRADESH', 'TELANGANA',
                                       'RAYALSEEMA', 'TAMIL NADU', 'COASTAL KARNATAKA', 'NORTH INTERIOR KARNATAKA',
-                                      'SOUTH INTERIOR KARNATAKA', 'KERALA', 'LAKSHADWEEP']
+                                      'SOUTH INTERIOR KARNATAKA', 'KERALA', 'LAKSHADWEEP'])
                       )
 
 year = st.selectbox('Year', range(1990, 2051))
@@ -79,20 +80,7 @@ random_forest_model.fit(x_train, y_train)
 RandomForestRegressor(max_depth=100, max_features='sqrt', min_samples_leaf=4, min_samples_split=10, n_estimators=800)
 y_train_predict = random_forest_model.predict(x_train)
 y_test_predict = random_forest_model.predict(x_test)
-print("-------Test Data--------")
-print('MAE:', metrics.mean_absolute_error(y_test, y_test_predict))
-print('MSE:', metrics.mean_squared_error(y_test, y_test_predict))
-print('RMSE:', np.sqrt(metrics.mean_squared_error(y_test, y_test_predict)))
 
-print("\n-------Train Data--------")
-print('MAE:', metrics.mean_absolute_error(y_train, y_train_predict))
-print('MSE:', metrics.mean_squared_error(y_train, y_train_predict))
-print('RMSE:', np.sqrt(metrics.mean_squared_error(y_train, y_train_predict)))
-
-print("-----------Training Accuracy------------")
-print(round(random_forest_model.score(x_train, y_train), 3) * 100)
-print("-----------Testing Accuracy------------")
-print(round(random_forest_model.score(x_test, y_test), 3) * 100)
 summ = [random_forest_model.predict([[year, month], ])[0]]
 for x in range(1, 13):
     if x == month:
